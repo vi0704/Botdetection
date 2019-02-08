@@ -4,6 +4,9 @@
 from django.shortcuts import render
 from .models import Botsdetection
 from .forms import Sessioncountform
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 
 
 def session_count(request):
@@ -24,4 +27,12 @@ def session_count(request):
                 return render(request, 'admin/index.html', {'data': data})
         else:
             form = Sessioncountform(request.POST)
-    return render(request, 'bots/admin.html', {'form': form})
+    return render(request, 'concept-master/index.html', {'form': form})
+
+
+class HelloView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        content = {'message': 'Hello, World!'}
+        return Response(content)
