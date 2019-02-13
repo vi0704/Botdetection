@@ -23,19 +23,16 @@ def session_count(request):
             date = form.cleaned_data['date']
             if Botsdetection.objects.filter(date=date).exists():
                 objects = Botsdetection.objects.get(date=date)
-                date= objects.date
-                sessions= objects.sessions
-                users= objects.users
+                date = objects.date
+                sessions = objects.sessions
+                users = objects.users
                 sessions_per_user = objects.sessions_per_user
                 context = {'date': date, 'users': users, 'sessions': sessions, 'sessions_per_user': sessions_per_user,
                            'form': form, 'data': data}
                 return render(request, 'concept-master/index.html', context=context)
 
-                pass
             else:
                 form = Sessioncountform()
-                # Botsdetection.objects.create(date=date, users=8000, session_count=5000)
-                # data = Botsdetection.objects.filter(date=date)
                 path = "/home/user/Desktop/Botdetection/mysite/bots/clean_log"
                 file = glob.glob(path + '*{}.log.gz'.format(date))
                 for k in file:
@@ -43,14 +40,11 @@ def session_count(request):
                     users = clean_data['uniqueid'].nunique()
                     sessions = clean_data['sessionid'].nunique()
                     sessions_per_user = round(sessions / users, 2)
-                Botsdetection.objects.create(date=date, users=users, sessions=sessions,
-                                             sessions_per_user=sessions_per_user)
-                context = {'date': date, 'users': users, 'sessions': sessions, 'sessions_per_user': sessions_per_user,
-                           'form': form, 'data': data}
-                return render(request, 'concept-master/index.html', context=context)
-
-
-
+                    Botsdetection.objects.create(date=date, users=users, sessions=sessions,
+                                                    sessions_per_user=sessions_per_user)
+                    context = {'date': date, 'users': users, 'sessions': sessions, 'sessions_per_user': sessions_per_user,
+                                'form': form, 'data': data}
+                    return render(request, 'concept-master/index.html', context=context)
 
         else:
             form = Sessioncountform(request.POST)
