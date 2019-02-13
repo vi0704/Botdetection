@@ -7,27 +7,55 @@ from .forms import Sessioncountform
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+import glob
+import pandas as pd
+from .models import Botsdetection
+from .forms import Sessioncountform
+
 
 
 def session_count(request):
     form = Sessioncountform(request.POST)
+    data = Botsdetection.objects.all()
     if request.method == 'POST':
 
         if form.is_valid():
             date = form.cleaned_data['date']
             if Botsdetection.objects.filter(date=date).exists():
-                data = Botsdetection.objects.filter(date=date)
-                return render(request, 'admin/index.html', {'data': data})
-            else:
-                # apna wala code yaha par date ke correspondind dal de aur jpo niche 8000 aur 5000 hai waha par returnd data de de
-                # khubsurat aur features thik kar rha tab tak
+                objects = Botsdetection.objects.get(date=date)
+                date= objects.date
+                sessions= objects.sessions
+                users= objects.users
+                sessions_per_user = objects.sessions_per_user
+                context = {'date': date, 'users': users, 'sessions': sessions, 'sessions_per_user': sessions_per_user,
+                           'form': form, 'data': data}
+                return render(request, 'concept-master/index.html', context=context)
 
-                Botsdetection.objects.create(date=date, users=8000, session_count=5000)
-                data = Botsdetection.objects.filter(date=date)
-                return render(request, 'admin/index.html', {'data': data})
+                pass
+            else:
+                form = Sessioncountform()
+                # Botsdetection.objects.create(date=date, users=8000, session_count=5000)
+                # data = Botsdetection.objects.filter(date=date)
+                path = "/home/user/Desktop/Botdetection/mysite/bots/clean_log"
+                file = glob.glob(path + '*{}.log.gz'.format(date))
+                for k in file:
+                    clean_data = pd.read_csv(k)
+                    users = clean_data['uniqueid'].nunique()
+                    sessions = clean_data['sessionid'].nunique()
+                    sessions_per_user = round(sessions / users, 2)
+                Botsdetection.objects.create(date=date, users=users, sessions=sessions,
+                                             sessions_per_user=sessions_per_user)
+                context = {'date': date, 'users': users, 'sessions': sessions, 'sessions_per_user': sessions_per_user,
+                           'form': form, 'data': data}
+                return render(request, 'concept-master/index.html', context=context)
+
+
+
+
         else:
             form = Sessioncountform(request.POST)
-    return render(request, 'concept-master/index.html', {'form': form})
+    return render(request, 'concept-master/index.html', {'form': form, 'data': data})
+
 
 
 class HelloView(APIView):
@@ -36,3 +64,5 @@ class HelloView(APIView):
     def get(self, request):
         content = {'message': 'Hello, World!'}
         return Response(content)
+
+
