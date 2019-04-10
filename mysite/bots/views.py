@@ -11,12 +11,15 @@ import glob
 import pandas as pd
 from .models import Botsdetection
 from .forms import Sessioncountform
+from django.contrib.auth.models import Group, Permission
 
 
 
 def session_count(request):
     form = Sessioncountform(request.POST)
     data = Botsdetection.objects.all()
+    permissions=Permission.objects.all()
+    print('hey there here are ur permissions',permissions)
     if request.method == 'POST':
 
         if form.is_valid():
